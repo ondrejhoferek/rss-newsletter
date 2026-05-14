@@ -1,0 +1,20 @@
+name: "AI & Developer Tools Weekly"
+language: en
+interests:
+  - AI agents
+  - Claude Agent SDK
+  - large language models
+  - Python
+  - developer tools
+  - databases
+  - interoperability
+  - security
+  - practical software engineering
+  - open source
+avoid_terms:
+  - cryptocurrency
+  - NFT
+  - blockchain
+  - gambling
+max_items: 8
+style: "concise and practical, focus on what matters for a working engineer"

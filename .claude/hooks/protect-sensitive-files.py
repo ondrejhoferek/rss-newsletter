@@ -8,7 +8,6 @@ import os
 import sys
 from typing import Any
 
-
 SENSITIVE_MARKERS = (
     ".env",
     "id_rsa",

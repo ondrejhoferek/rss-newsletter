@@ -1,0 +1,38 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Runtime outputs
+output/*.md
+output/*.json
+output/*.log
+!output/.gitkeep
+
+# Local app state
+state/*.json
+!state/.gitkeep
+
+# Private Claude notes
+CLAUDE.local.md
+
+# OS
+.DS_Store

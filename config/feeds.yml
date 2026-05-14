@@ -1,0 +1,35 @@
+feeds:
+  - name: Hacker News
+    url: https://news.ycombinator.com/rss
+    enabled: true
+    category_hints: [technology, startups, developer-tools]
+
+  - name: OpenAI News
+    url: https://openai.com/news/rss.xml
+    enabled: true
+    category_hints: [ai, models, product]
+
+  - name: Anthropic News
+    url: https://www.anthropic.com/news/rss.xml
+    enabled: true
+    category_hints: [ai, agents, models]
+
+  - name: GitHub Blog
+    url: https://github.blog/feed/
+    enabled: true
+    category_hints: [developer-tools, engineering]
+
+  - name: GitHub Changelog
+    url: https://github.blog/changelog/feed/
+    enabled: true
+    category_hints: [developer-tools, product-updates]
+
+  - name: Python Insider
+    url: https://blog.python.org/feeds/posts/default
+    enabled: true
+    category_hints: [python, programming]
+
+  - name: Mozilla Hacks
+    url: https://hacks.mozilla.org/feed/
+    enabled: true
+    category_hints: [web, developer-tools]
