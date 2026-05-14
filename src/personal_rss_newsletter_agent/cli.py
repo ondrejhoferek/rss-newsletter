@@ -50,6 +50,7 @@ def cli() -> None:
     default=None,
     help="Write progress log to FILE.",
 )
+@click.option("--debug", is_flag=True, default=False, help="Enable DEBUG level logging.")
 def generate(
     profile: Path,
     feeds: Path,
@@ -58,9 +59,10 @@ def generate(
     output_dir: Path,
     state_dir: Path | None,
     log_file: Path | None,
+    debug: bool,
 ) -> None:
     """Generate a newsletter from RSS feeds."""
-    configure_logging(log_file)
+    configure_logging(log_file, debug=debug)
     config = load_config(feeds_path=feeds, profile_path=profile)
 
     click.echo(f"Generating newsletter: {config.profile.name}")
