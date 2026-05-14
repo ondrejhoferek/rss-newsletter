@@ -12,8 +12,6 @@ from typing import Any, TypeVar
 from claude_agent_sdk import ClaudeAgentOptions, ResultMessage, query
 from pydantic import BaseModel, ValidationError
 
-from personal_rss_newsletter_agent.config import get_model
-
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
@@ -87,7 +85,6 @@ async def run_agent(
         allowed_tools=[],
         output_format={"type": "json_schema", "schema": schema},
         permission_mode="bypassPermissions",
-        model=get_model(),
     )
 
     last_error: Exception | None = None

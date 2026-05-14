@@ -1,6 +1,5 @@
 """Configuration loading and validation."""
 
-import os
 from pathlib import Path
 
 import yaml
@@ -42,8 +41,3 @@ def load_config(feeds_path: Path, profile_path: Path) -> AppConfig:
     feeds = load_feeds(feeds_path)
     profile = load_profile(profile_path)
     return AppConfig(feeds=feeds, profile=profile)
-
-
-def get_model() -> str:
-    """Get the model to use for agent phases."""
-    return os.environ.get("NEWSLETTER_MODEL", "claude-sonnet-4-6")
