@@ -67,17 +67,32 @@ async def run_agent(
             )
 
         result_message: ResultMessage | None = None
-        async for message in query(prompt=prompt + retry_note, options=options):
-            if isinstance(message, ResultMessage):
-                result_message = message
+        try:
+            async for message in query(prompt=prompt + retry_note, options=options):
+                if isinstance(message, ResultMessage):
+                    result_message = message
+        except Exception as e:
+            if result_message is None:
+                last_error = RuntimeError(
+                    f"SDK error (no result collected): {e}. "
+                    "Check Claude authentication: run 'claude --version' or set ANTHROPIC_API_KEY."
+                )
+                continue
+            # ResultMessage was collected before the exception — proceed with it
 
         if result_message is None:
             last_error = RuntimeError("No ResultMessage received from agent")
             continue
 
         if result_message.is_error:
-            error_detail = result_message.result or "Unknown error"
-            last_error = RuntimeError(f"Agent returned error: {error_detail}")
+            status = getattr(result_message, "api_error_status", None)
+            errors = getattr(result_message, "errors", None)
+            detail = (
+                "; ".join(errors) if errors
+                else f"HTTP {status}" if status
+                else result_message.result or "Unknown API error"
+            )
+            last_error = RuntimeError(f"Agent returned error: {detail}")
             continue
 
         if result_message.structured_output is None:

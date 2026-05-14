@@ -115,6 +115,15 @@ When adding new behavior:
 - Keep rendered Markdown safe: do not execute embedded content.
 - Do not add telemetry, external posting, email sending, or network writes without explicit user request.
 
+## Planning workflow
+
+- One task = one plan = one branch/PR.
+- Plans live in `docs/ai-plans/active/` while in progress, move to `docs/ai-plans/done/YYYY-MM/` when complete.
+- Small, clear fixes do not need a formal plan — implement directly.
+- Do not put task-specific plans in CLAUDE.md. This file is for permanent, reusable instructions only.
+- New bugfixes and features during an unrelated workstream get their own plan file.
+- Plan metadata: status (active/done/abandoned/superseded), type (feature/bugfix/refactor/investigation), branch, created/updated dates.
+
 ## Review checklist
 
 Before finishing, check:
