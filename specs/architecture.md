@@ -8,6 +8,7 @@ The Personal RSS Newsletter Agent is a CLI application that generates curated ne
 
 ```
 CLI (cli.py)
+  → configure logging (logging_setup.py)
   → load config (config.py)
   → orchestrator (orchestrator.py)
       → fetch RSS feeds (rss_ingestion.py) ─── deterministic
@@ -69,13 +70,26 @@ Each response is validated with Pydantic before being passed downstream. Failed 
 
 ## Observability
 
+### Run report (always written)
+
 Each run produces a `RunReport` containing:
 - Feeds attempted and failures
 - Article counts at each stage (raw, after dedupe, scored, selected)
 - Warnings (broken feeds, short excerpts, validation issues)
 - Output file paths
 
-The report is written to `output/run_YYYY-MM-DD.log`.
+The report is always written to `output/run_YYYY-MM-DD.log` as a formatted text artifact.
+
+### Progress logging
+
+The application uses Python's standard `logging` module via `logging_setup.configure_logging()`:
+
+- **Always:** INFO-level progress messages are printed to stdout during the run — pipeline phase transitions, article counts at each step, and per-agent call summaries (start, token usage, validation result).
+- **With `--log FILE`:** The same INFO messages plus DEBUG-level detail (full JSON dump of each agent `ResultMessage`) are written to the specified file in addition to stdout.
+
+Log format: `%(asctime)s %(levelname)-8s %(name)s — %(message)s`
+
+Third-party library loggers are suppressed to `WARNING` to avoid noise.
 
 ## Test Strategy
 
@@ -85,6 +99,7 @@ The report is written to `output/run_YYYY-MM-DD.log`.
 | Config | File I/O with tmp_path fixtures |
 | Dedupe | Unit tests with crafted duplicates |
 | Render | Output string assertions |
+| Logging setup | Handler type and level assertions, idempotency |
 | Runtime config | File existence checks |
 | Orchestrator | Mocked SDK calls, contract flow verification |
 | Integration | Manual end-to-end run (requires auth) |

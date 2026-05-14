@@ -6,6 +6,7 @@ from pathlib import Path
 import click
 
 from personal_rss_newsletter_agent.config import load_config
+from personal_rss_newsletter_agent.logging_setup import configure_logging
 from personal_rss_newsletter_agent.orchestrator import run_pipeline
 from personal_rss_newsletter_agent.render import render_run_report
 
@@ -42,6 +43,13 @@ def cli() -> None:
     default=None,
     help="State directory for history tracking. Pass 'state' to enable.",
 )
+@click.option(
+    "--log",
+    "log_file",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+    default=None,
+    help="Write progress log to FILE.",
+)
 def generate(
     profile: Path,
     feeds: Path,
@@ -49,8 +57,10 @@ def generate(
     max_items: int,
     output_dir: Path,
     state_dir: Path | None,
+    log_file: Path | None,
 ) -> None:
     """Generate a newsletter from RSS feeds."""
+    configure_logging(log_file)
     config = load_config(feeds_path=feeds, profile_path=profile)
 
     click.echo(f"Generating newsletter: {config.profile.name}")

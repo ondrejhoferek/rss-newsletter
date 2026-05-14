@@ -4,6 +4,8 @@ Wraps the SDK query() function with structured output validation,
 bounded retries, and explicit runtime directory configuration.
 """
 
+import json
+import logging
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -11,6 +13,8 @@ from claude_agent_sdk import ClaudeAgentOptions, ResultMessage, query
 from pydantic import BaseModel, ValidationError
 
 from personal_rss_newsletter_agent.config import get_model
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -87,15 +91,23 @@ async def run_agent(
     )
 
     last_error: Exception | None = None
+    schema_name = output_schema.__name__
 
     for attempt in range(max_retries + 1):
         retry_note = ""
         if attempt > 0:
+            logger.warning(
+                "%s: retry %d/%d (last error: %s)", schema_name, attempt, max_retries, last_error
+            )
             retry_note = (
                 f"\n\n(Previous attempt failed validation: {last_error}. "
                 "Please ensure your response matches the schema exactly.)"
             )
 
+        logger.info(
+            "%s: starting agent call (attempt %d, prompt_len=%d)",
+            schema_name, attempt + 1, len(prompt),
+        )
         result_message: ResultMessage | None = None
         try:
             async for message in query(prompt=prompt + retry_note, options=options):
@@ -114,6 +126,19 @@ async def run_agent(
             last_error = RuntimeError("No ResultMessage received from agent")
             continue
 
+        logger.debug(
+            "%s: ResultMessage dump:\n%s", schema_name, _dump_result_message(result_message)
+        )
+
+        usage = getattr(result_message, "usage", None)
+        if usage is not None:
+            logger.info(
+                "%s: tokens input=%s output=%s",
+                schema_name,
+                getattr(usage, "input_tokens", "?"),
+                getattr(usage, "output_tokens", "?"),
+            )
+
         if result_message.is_error:
             status = getattr(result_message, "api_error_status", None)
             errors = getattr(result_message, "errors", None)
@@ -130,9 +155,24 @@ async def run_agent(
             continue
 
         try:
-            return output_schema.model_validate(result_message.structured_output)
+            validated = output_schema.model_validate(result_message.structured_output)
+            logger.info("%s: validated successfully", schema_name)
+            return validated
         except ValidationError as e:
             last_error = e
             continue
 
     raise RuntimeError(f"Agent failed after {max_retries + 1} attempts. Last error: {last_error}")
+
+
+def _dump_result_message(result_message: ResultMessage) -> str:
+    """Serialize ResultMessage to a JSON string for debug logging."""
+    try:
+        import dataclasses
+        if dataclasses.is_dataclass(result_message):
+            raw = dataclasses.asdict(result_message)
+        else:
+            raw = vars(result_message)
+        return json.dumps(raw, default=str, indent=2)
+    except Exception:
+        return repr(result_message)

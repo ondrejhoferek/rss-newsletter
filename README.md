@@ -64,6 +64,7 @@ style: "concise and practical"
 
 ```bash
 # Generate newsletter (default: last 1 day, max 8 items)
+# Progress log is printed to stdout during the run
 uv run personal-newsletter generate
 
 # Custom options
@@ -72,12 +73,28 @@ uv run personal-newsletter generate --days 3 --max-items 5
 # With history tracking (avoids repeating articles across runs)
 uv run personal-newsletter generate --state-dir state
 
+# Write progress log to a file instead of (in addition to) stdout
+# The file includes timestamps, token usage, and full agent response details
+uv run personal-newsletter generate --log output/run.log
+
 # Custom config paths
 uv run personal-newsletter generate \
   --profile config/profile.yml \
   --feeds config/feeds.yml \
   --output-dir output
 ```
+
+### CLI options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--profile` | `config/profile.yml` | Path to profile YAML |
+| `--feeds` | `config/feeds.yml` | Path to feeds YAML |
+| `--days` | `1` | Look back N days for articles |
+| `--max-items` | `8` | Maximum newsletter items |
+| `--output-dir` | `output` | Output directory for generated files |
+| `--state-dir` | _(none)_ | State directory for history tracking |
+| `--log` | _(none)_ | Write timestamped progress log to FILE (stdout always receives INFO-level progress) |
 
 ## Generated Outputs
 
