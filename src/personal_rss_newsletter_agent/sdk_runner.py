@@ -5,7 +5,7 @@ bounded retries, and explicit runtime directory configuration.
 """
 
 from pathlib import Path
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from claude_agent_sdk import ClaudeAgentOptions, ResultMessage, query
 from pydantic import BaseModel, ValidationError
@@ -16,6 +16,37 @@ T = TypeVar("T", bound=BaseModel)
 
 RUNTIME_DIR = Path(__file__).resolve().parent.parent.parent / "runtime"
 MAX_RETRIES = 2
+
+
+UNSUPPORTED_KEYWORDS = frozenset({
+    "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
+    "minLength", "maxLength", "pattern", "minItems", "maxItems",
+    "uniqueItems", "title", "description", "default", "examples",
+})
+
+
+def _prepare_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """Prepare a Pydantic JSON schema for the Anthropic structured output API.
+
+    - Adds additionalProperties: false to all object types
+    - Strips unsupported validation keywords (minimum, maximum, title, etc.)
+    """
+    if schema.get("type") == "object":
+        schema["additionalProperties"] = False
+    for kw in UNSUPPORTED_KEYWORDS:
+        schema.pop(kw, None)
+    properties: dict[str, Any] = schema.get("properties", {})
+    for prop in properties.values():
+        if isinstance(prop, dict):
+            _prepare_schema(prop)
+    defs: dict[str, Any] = schema.get("$defs", {})
+    for defn in defs.values():
+        if isinstance(defn, dict):
+            _prepare_schema(defn)
+    items: Any = schema.get("items")
+    if isinstance(items, dict):
+        _prepare_schema(items)
+    return schema
 
 
 def get_runtime_dir() -> Path:
@@ -44,7 +75,7 @@ async def run_agent(
         RuntimeError: If all retries are exhausted or the agent returns an error.
     """
     runtime_dir = get_runtime_dir()
-    schema = output_schema.model_json_schema()
+    schema = _prepare_schema(output_schema.model_json_schema())
 
     options = ClaudeAgentOptions(
         cwd=str(runtime_dir),
@@ -53,7 +84,6 @@ async def run_agent(
         output_format={"type": "json_schema", "schema": schema},
         permission_mode="bypassPermissions",
         model=get_model(),
-        max_turns=1,
     )
 
     last_error: Exception | None = None
