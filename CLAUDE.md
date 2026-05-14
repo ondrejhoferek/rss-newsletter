@@ -11,16 +11,51 @@ These instructions apply to Python projects that build agentic applications with
 - Prefer small, reviewable changes.
 - Verify with tests or a concrete command before considering work complete.
 - Do not hide failures. Explain what failed and what remains.
+- Assume the user is technically experienced; be direct and focus on tradeoffs.
+
+## Code quality philosophy
+
+- Write simple, maintainable, production-ready code.
+- Prefer clarity over cleverness.
+- Choose the smallest design that satisfies the current requirement.
+- Keep code easy to delete, test, and review.
+- Avoid speculative abstractions, speculative features, and premature optimization.
+- Prefer composition and plain functions before classes or inheritance.
+- Apply SOLID principles pragmatically where they improve clarity.
+- Keep functions small and focused on one level of abstraction.
+- Use meaningful, domain-oriented names; avoid abbreviations unless widely understood.
+- Remove dead code, unused imports, stale comments, and commented-out code.
+- Comments should explain why, not restate what the code does.
+- Validate inputs at system boundaries and fail explicitly with clear errors.
 
 ## Python engineering standards
 
-- Use `uv` for dependency and command execution when the project supports it.
 - Use a `src/` layout for importable packages.
 - Use Pydantic models at data boundaries.
 - Keep I/O, orchestration, rendering, and data models in separate modules.
 - Prefer pure functions for deterministic transformations.
 - Avoid global mutable state except for explicit configuration objects.
 - Do not read secrets from source files. Use environment variables and `.env.example` only.
+- Avoid adding an HTTP API, web framework, or background service unless the project explicitly requires it.
+
+## Python backend and dependency standards
+
+- Use `uv` as the default Python project manager in new Python projects.
+- Do not use `pip`, `poetry`, `pipenv`, or manual virtualenv commands unless the user explicitly asks or the existing project already requires them.
+- Manage dependencies through `pyproject.toml` and `uv.lock`.
+- Commit `uv.lock` for application projects.
+- Use `.python-version` to pin the intended local Python version when practical.
+- Run project commands through `uv run`, for example:
+  - `uv run pytest`
+  - `uv run ruff check .`
+  - `uv run mypy src`
+  - `uv run <console-script>`
+- Use `uv sync` for explicit local environment setup.
+- In CI or reproducibility-sensitive validation, prefer locked commands such as `uv run --locked ...` or `uv lock --check`.
+- Add runtime dependencies with `uv add <package>`.
+- Add development dependencies with dependency groups, for example `uv add --group dev pytest ruff mypy`.
+- Prefer `[dependency-groups]` for dev/test/lint dependencies over legacy `tool.uv.dev-dependencies`.
+- Do not hand-edit dependency versions unless there is a clear reason; prefer `uv add`, `uv remove`, and `uv lock`.
 
 ## Agentic architecture standards
 
@@ -86,6 +121,11 @@ Before finishing, check:
 
 - The project runs from a clean checkout.
 - Required environment variables are documented.
+- Dependencies and commands use `uv` consistently.
+- No dead code, unused imports, stale comments, or commented-out code remain.
+- No speculative features or abstractions were added.
+- Names are clear and domain-oriented.
+- Error handling is explicit at I/O, configuration, and agent-output boundaries.
 - Agent outputs are schema-validated.
 - Runtime Claude configuration is explicit and tested when used.
 - The README shows a real command that produces an output artifact.

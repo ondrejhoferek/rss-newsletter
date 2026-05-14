@@ -334,6 +334,64 @@ specs/
 
 The documentation must describe the actual generated implementation. Do not create aspirational documentation that mentions components not implemented in the MVP. Avoid duplicating large blocks between files; the README should link to the specs for deeper technical details.
 
+### 13. Python packaging and tooling
+
+The generated project must be a `uv` managed Python CLI application.
+
+Required project tooling files:
+
+```text
+pyproject.toml
+uv.lock
+.python-version
+```
+
+`pyproject.toml` must include:
+
+- project metadata,
+- Python version requirement,
+- runtime dependencies,
+- development dependency groups,
+- console script entry point for the CLI,
+- Ruff configuration,
+- pytest configuration,
+- mypy configuration.
+
+Suggested runtime dependencies include:
+
+```text
+claude-agent-sdk
+feedparser
+pydantic>=2
+pyyaml
+python-dotenv
+rich
+typer
+```
+
+Suggested development dependencies include:
+
+```text
+pytest
+pytest-cov
+ruff
+mypy
+types-PyYAML
+```
+
+Use `uv` consistently for dependency management, environment syncing, and command execution. Documentation and tests should prefer commands such as:
+
+```bash
+uv sync
+uv run personal-newsletter generate --profile config/profile.yml --feeds config/feeds.yml --days 1 --max-items 8
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy src
+```
+
+Do not require manual virtual environment activation in normal usage documentation. Do not use `pip`, `poetry`, or `pipenv` unless a future requirement explicitly changes the project tooling.
+
 ## Recommended technical shape
 
 Suggested repository structure for the generated application:
@@ -341,6 +399,8 @@ Suggested repository structure for the generated application:
 ```text
 personal-rss-newsletter-agent/
   pyproject.toml
+  uv.lock
+  .python-version
   README.md
   .env.example
   .gitignore
@@ -467,6 +527,10 @@ The project is done when all of the following are true:
 18. The architecture spec accurately describes the implemented workflow and JSON contracts.
 19. The runtime agent config spec accurately describes the runtime Claude configuration used by the SDK.
 20. Documentation does not duplicate large blocks between files; README links to specs for deeper technical details.
+21. The generated project includes `pyproject.toml`, `uv.lock`, and `.python-version`.
+22. `pyproject.toml` defines project metadata, runtime dependencies, dev dependency groups, CLI entry point, and tool configuration for Ruff, pytest, and mypy.
+23. Python project management and documentation consistently use `uv`; normal usage does not require manual virtual environment activation.
+24. `uv lock --check` or an equivalent locked/dependency consistency check is available or documented for reproducibility-sensitive validation.
 
 ## Demo script
 
