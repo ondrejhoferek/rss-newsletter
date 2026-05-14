@@ -127,14 +127,7 @@ async def run_agent(
             "%s: ResultMessage dump:\n%s", schema_name, _dump_result_message(result_message)
         )
 
-        usage = getattr(result_message, "usage", None)
-        if usage is not None:
-            logger.info(
-                "%s: tokens input=%s output=%s",
-                schema_name,
-                getattr(usage, "input_tokens", "?"),
-                getattr(usage, "output_tokens", "?"),
-            )
+        _log_result_summary(schema_name, result_message)
 
         if result_message.is_error:
             status = getattr(result_message, "api_error_status", None)
@@ -160,6 +153,45 @@ async def run_agent(
             continue
 
     raise RuntimeError(f"Agent failed after {max_retries + 1} attempts. Last error: {last_error}")
+
+
+def _usage_val(usage: dict[str, Any], key: str, default: str = "?") -> str:
+    v = usage.get(key, default)
+    return str(v) if v is not None else default
+
+
+def _log_result_summary(schema_name: str, result_message: ResultMessage) -> None:
+    """Log a concise summary of a ResultMessage: model, tokens, cache, cost, duration."""
+    raw_usage = result_message.usage
+    raw_model_usage = result_message.model_usage
+
+    model = "?"
+    if isinstance(raw_model_usage, dict) and raw_model_usage:
+        model = str(next(iter(raw_model_usage)))
+
+    usage: dict[str, Any] = raw_usage if isinstance(raw_usage, dict) else {}
+    input_tokens = _usage_val(usage, "input_tokens")
+    output_tokens = _usage_val(usage, "output_tokens")
+    cache_read = _usage_val(usage, "cache_read_input_tokens", "0")
+    cache_created = _usage_val(usage, "cache_creation_input_tokens", "0")
+
+    cost = result_message.total_cost_usd
+    cost_str = f"${cost:.6f}" if isinstance(cost, float) else "?"
+    duration_str = f"{result_message.duration_ms}ms"
+
+    logger.info(
+        "%s: model=%s turns=%s duration=%s cost=%s "
+        "tokens input=%s output=%s cache_read=%s cache_created=%s",
+        schema_name,
+        model,
+        result_message.num_turns,
+        duration_str,
+        cost_str,
+        input_tokens,
+        output_tokens,
+        cache_read,
+        cache_created,
+    )
 
 
 def _dump_result_message(result_message: ResultMessage) -> str:
