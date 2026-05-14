@@ -48,7 +48,7 @@ async def run_agent(
 
     options = ClaudeAgentOptions(
         cwd=str(runtime_dir),
-        setting_sources=["project"],
+        setting_sources=["user", "project"],
         allowed_tools=[],
         output_format={"type": "json_schema", "schema": schema},
         permission_mode="bypassPermissions",
