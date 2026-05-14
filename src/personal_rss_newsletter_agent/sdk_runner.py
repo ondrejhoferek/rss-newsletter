@@ -77,6 +77,7 @@ async def run_agent(
         RuntimeError: If all retries are exhausted or the agent returns an error.
     """
     runtime_dir = get_runtime_dir()
+    logger.debug("%s: using runtime cwd=%s", output_schema.__name__, runtime_dir)
     schema = _prepare_schema(output_schema.model_json_schema())
 
     options = ClaudeAgentOptions(
